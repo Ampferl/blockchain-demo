@@ -1,4 +1,4 @@
-const SHA256 = require('crypto-js/sha256');
+const SHA256 = require('crypto-js/sha256'); // Install with "npm install crypto-js"
 
 class Block{
 	constructor(index, timestamp, data, previousHash = ''){
@@ -7,16 +7,28 @@ class Block{
 		this.data = data;
 		this.previousHash = previousHash;
 		this.hash = this.calculateHash();
+		this.nonce = 0;
 	}
 	
 	calculateHash(){
-		return SHA256(this.index + this.previousHash + this.timestamp + JSON.stringify(this.data)).toString();
+		return SHA256(this.index + this.previousHash + this.timestamp + JSON.stringify(this.data) + this.nonce).toString();
+	}
+	
+	mineBlock(difficulty){
+		while(this.hash.substring(0, difficulty) !== Array(difficulty + 1).join("0")){
+			this.nonce++;
+			this.hash = this.calculateHash();
+		}
+		
+		console.log("Block mined: " + this.hash);
 	}
 }
+
 
 class Blockchain{
 	constructor(){
 		this.chain = [this.createGenesisBlock()];
+		this.difficulty = 2; // Here you can set the difficulty
 	}
 	
 	createGenesisBlock(){
@@ -29,7 +41,7 @@ class Blockchain{
 	
 	addBlock(newBlock){
 		newBlock.previousHash = this.getLatestBlock().hash;
-		newBlock.hash = newBlock.calculateHash();
+		newBlock.mineBlock(this.difficulty);
 		this.chain.push(newBlock);
 	}
 	
@@ -52,10 +64,13 @@ class Blockchain{
 }
 
 let chaepyCoin = new Blockchain();
-chaepyCoin.addBlock(new Block(1, "01/03/2019", { amount: 4}));
+
+// Here we create new Blocks
+chaepyCoin.addBlock(new Block(1, "01/03/2019", { amount: 4})); 
 chaepyCoin.addBlock(new Block(2, "04/03/2019", { amount: 6}));
 chaepyCoin.addBlock(new Block(3, "07/03/2019", { amount: 2}));
 
-console.log('Is blockchain valid? ' + chaepyCoin.isChainValid());
 
-//console.log(JSON.stringify(chaepyCoin, null, 4));
+//console.log('Is blockchain valid? ' + chaepyCoin.isChainValid()); // Show if Block is valid
+
+//console.log(JSON.stringify(chaepyCoin, null, 4)); // Show the Blockchain
