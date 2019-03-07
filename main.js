@@ -1,17 +1,24 @@
 const SHA256 = require('crypto-js/sha256'); // Install with "npm install crypto-js"
 
+class Transaction{
+	constructor(fromAddress, toAddress, amount){
+		this.fromAddress = fromAddress;
+		this.toAddress = toAddress;
+		this.amount = amount;
+	}
+}
+
 class Block{
-	constructor(index, timestamp, data, previousHash = ''){
-		this.index = index;
+	constructor(timestamp, transactions, previousHash = ''){
 		this.timestamp = timestamp;
-		this.data = data;
+		this.transactions = transactions;
 		this.previousHash = previousHash;
 		this.hash = this.calculateHash();
 		this.nonce = 0;
 	}
 	
 	calculateHash(){
-		return SHA256(this.index + this.previousHash + this.timestamp + JSON.stringify(this.data) + this.nonce).toString();
+		return SHA256(this.previousHash + this.timestamp + JSON.stringify(this.transactions) + this.nonce).toString();
 	}
 	
 	mineBlock(difficulty){
@@ -28,21 +35,51 @@ class Block{
 class Blockchain{
 	constructor(){
 		this.chain = [this.createGenesisBlock()];
-		this.difficulty = 2; // Here you can set the difficulty
+		this.difficulty = 2; // Here you can set the difficulty to mine a Block
+		this.pendingTransactions = [];
+		this.miningReward = 100; // Here you can set the Reward for mining a Block
 	}
 	
 	createGenesisBlock(){
-		return new Block(0, "01/01/2019", "Genesis block", "0");
+		return new Block("01/01/2019", "Genesis block", "0");
 	}
 	
 	getLatestBlock(){
 		return this.chain[this.chain.length - 1];
 	}
 	
-	addBlock(newBlock){
-		newBlock.previousHash = this.getLatestBlock().hash;
-		newBlock.mineBlock(this.difficulty);
-		this.chain.push(newBlock);
+	minePendingTransactions(miningRewardAddress){
+		let block = new Block(Date.now(), this.pendingTransactions);
+		block.mineBlock(this.difficulty);
+		
+		console.log("Block successfully mined!");
+		this.chain.push(block);
+		
+		this.pendingTransactions = [
+			new Transaction(null, miningRewardAddress, this.miningReward)
+		];
+	}
+	
+	createTransaction(transaction){
+		this.pendingTransactions.push(transaction);
+	}
+	
+	getBalanceOfAddress(address){
+		let balance = 0;
+		
+		for(const block of this.chain){
+			for(const trans of block.transactions){
+				if(trans.fromAddress === address){
+					balance -= trans.amount;
+				}
+				
+				if(trans.toAddress === address){
+					balance += trans.amount;
+				}
+			}
+		}
+		
+		return balance;
 	}
 	
 	isChainValid(){
@@ -65,12 +102,14 @@ class Blockchain{
 
 let chaepyCoin = new Blockchain();
 
-// Here we create new Blocks
-chaepyCoin.addBlock(new Block(1, "01/03/2019", { amount: 4})); 
-chaepyCoin.addBlock(new Block(2, "04/03/2019", { amount: 6}));
-chaepyCoin.addBlock(new Block(3, "07/03/2019", { amount: 2}));
 
+// Some Transaction tests
+chaepyCoin.createTransaction(new Transaction('chaepy', 'jonas', 100));
+chaepyCoin.createTransaction(new Transaction('jonas', 'chaepy', 50));
+chaepyCoin.minePendingTransactions('jonas');
 
-//console.log('Is blockchain valid? ' + chaepyCoin.isChainValid()); // Show if Block is valid
+chaepyCoin.createTransaction(new Transaction('chaepy', 'jonas', 10));
+chaepyCoin.minePendingTransactions('chaepy');
 
-//console.log(JSON.stringify(chaepyCoin, null, 4)); // Show the Blockchain
+console.log("Balance of Jonas is ", chaepyCoin.getBalanceOfAddress('jonas'));
+console.log("Balance of Chaepy is ", chaepyCoin.getBalanceOfAddress('chaepy'));
