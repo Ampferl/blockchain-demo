@@ -1,4 +1,4 @@
-# Basic Blockchain Demo
+# Basic Blockchain Demo [DEPRECATED]
 This is a Blockchain demo, which can add transactions, have mining rewards, use proof-of-work and signing the transactions.
 ## Quick Guide
 #### Create Keys
@@ -37,6 +37,10 @@ console.log("Is chain valid?", chaepyCoin.isChainValid());
 - NodeJS
 - crypto-js (`npm install crypto-js`)
 - elliptic (`npm install elliptic`)
+
+## Resources
+- [Blockchain für Entwickler](https://www.amazon.de/Blockchain-f%C3%BCr-Entwickler-Programmierung-Praxisbeispielen/dp/3836263904)
+
 ## Contact
 Email: contact@chaepy.net\
 Website: https://chaepy.net/ 
